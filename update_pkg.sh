@@ -2,18 +2,18 @@
 
 usage() { echo "$0 usage:" && grep " -. |.*) *#" $0; }
 
-
 # set default values
 pkgbuildFile="./PKGBUILD"
-updateGithubRepo=false
+updateMainRepo=false
+pushGithubRepo=false
 repoPkgVer=$(curl --silent "https://api.github.com/repos/sentriz/gonic/tags" | \
     jq -r '.[0].name' | cut -d 'v' -f 2)
 verbose=false
 
 # parse arguments
 GET_OPT=$(getopt \
-    -o 'f:uv:Vh' \
-    --long 'file:,update,version:,verbose,help' \
+    -o 'f:puv:Vh' \
+    --long 'file:,push,update,version:,verbose,help' \
     -- "$@")
 eval set -- "${GET_OPT}"
 
@@ -23,8 +23,10 @@ while true; do
           usage; exit 0;;
       -f | --file)        # Path to a PKGBUILD file (default: "./PKGBUILD").
           pkgbuildFile=$2; shift 2;;
+      -p | --push)        # Push to GitHub repository (default: false).
+          pushGithubRepo=true; updateMainRepo=true; shift 1;;
       -u | --update)      # Update GitHub repository (default: false).
-          updateGithubRepo=true; shift 1;;
+          updateMainRepo=true; shift 1;;
       -v | --version)     # If a specific semantic version is required (e.g. 0.8.5).
           repoPkgVer=$2; shift 2;;
       -V | --verbose)     # Enable verbose mode (default: false).
@@ -120,8 +122,8 @@ then
     then
         echo "[SUCCESS] Package was successfully built"
         # if update is set, commit and copy indexed files to github directory
-        ${updateGithubRepo} && git commit -am "Update to ${repoPkgVer}"
-        ${updateGithubRepo} && cp $(git ls-files) ../
+        ${pushGithubRepo} && git commit -am "Update to ${repoPkgVer}"
+        ${updateMainRepo} && cp $(git ls-files) ../
     else
         echo "[FAILURE] Package building failed"
 
@@ -132,9 +134,10 @@ then
     fi
     popd
     # if update is set, commit and push to GitHub
-    ${updateGithubRepo} && git commit -am "Update to ${repoPkgVer}"
-    #${updateGithubRepo} && git push origin master
+    ${pushGithubRepo} && git commit -am "Update to ${repoPkgVer}"
+    ${pushGithubRepo} && git push origin master
 else
     echo "[UPDATED] Package is up to date"
     # Nothing to do
 fi
+

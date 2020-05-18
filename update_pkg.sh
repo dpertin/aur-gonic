@@ -25,7 +25,7 @@ while true; do
           pkgbuildFile=$2; shift 2;;
       -p | --push)        # Push to GitHub repository (default: false).
           pushGithubRepo=true; updateMainRepo=true; shift 1;;
-      -u | --update)      # Update GitHub repository (default: false).
+      -u | --update)      # Update the main repository (default: false).
           updateMainRepo=true; shift 1;;
       -v | --version)     # If a specific semantic version is required (e.g. 0.8.5).
           repoPkgVer=$2; shift 2;;
@@ -35,6 +35,9 @@ while true; do
       *) usage; exit 1;;
     esac
 done
+
+[ -z "${MAILTO}" ] && echo -e \
+    "\e[33m[Warning] MAILTO must be set to receive email alerts\e[0m"
 
 # check if given PKGBUILD file exists
 if [[ ! -f "$pkgbuildFile" ]]
@@ -119,6 +122,7 @@ then
     update_package
 
     if makepkg_log=$(makepkg -p ${pkgbuildFile} 2>&1)
+    status="succeeded"
     then
         echo "[SUCCESS] Package was successfully built"
         # if update is set, commit and copy indexed files to github directory
@@ -126,12 +130,19 @@ then
         ${updateMainRepo} && cp $(git ls-files) ../
     else
         echo "[FAILURE] Package building failed"
+        status="failed"
+    fi
 
-        # Send an email
+    # send an email
+    if [ ! -z "${MAILTO}" ]
+    then
+        echo "Sending an email to ${MAILTO}..."
         content="Updating from ${pkgver} to ${repoPkgVer}\n\n
         This is the output of makepkg:\n${makepkg_log}"
-        echo ${content} | mail -v -s "[${pkgname}] makepkg failed"
+        echo ${content} | mail -v -s \
+            "[${pkgname-${repoPkgVer}}] makepkg ${status}" ${MAILTO}
     fi
+
     popd
     # if update is set, commit and push to GitHub
     ${pushGithubRepo} && git commit -am "Update to ${repoPkgVer}"

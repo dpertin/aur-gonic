@@ -116,7 +116,7 @@ then
     git clone https://aur.archlinux.org/${pkgname}.git ${dir_name}
     sed \
         "s#https://aur.archlinux.org#ssh+git://aur@aur.archlinux.org#" \
-        -i .git/config
+        -i ${dir_name}/.git/config
 
     pushd ${dir_name}
     update_package

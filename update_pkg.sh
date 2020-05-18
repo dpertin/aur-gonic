@@ -61,7 +61,7 @@ source ${pkgbuildFile}
 vercomp () {
     if [[ $1 == $2 ]]
     then
-        return 0
+        return 1
     fi
     local IFS=.
     local i ver1=($1) ver2=($2)
@@ -88,6 +88,8 @@ vercomp () {
 update_package () {
     # update package version
     sed "s/^pkgver=.*/pkgver=${repoPkgVer}/" -i ${pkgbuildFile}
+    # update package release
+    sed "s/^pkgrel=.*/pkgrel=1/" -i ${pkgbuildFile}
 
     # update md5 sums
     if hash updpkgsums 2>/dev/null; then
@@ -108,26 +110,27 @@ ${verbose} && echo "Main repository version: ${repoPkgVer}"
 
 if vercomp ${pkgver} ${repoPkgVer};
 then
-    dir_name=$"${pkgname}_${repoPkgVer}"
+    dirName=$"${pkgname}_${repoPkgVer}"
 
     echo "[OUT_OF_DATE] New version available"
-    echo "Try to build the new package under ${dir_name}"
-    [ -d "${dir_name}" ] && rm -rf ${dir_name}
-    git clone https://aur.archlinux.org/${pkgname}.git ${dir_name}
+    echo "Try to build the new package under ${dirName}"
+    [ -d "${dirName}" ] && rm -rf ${dir_name}
+    git clone https://aur.archlinux.org/${pkgname}.git ${dirName}
     sed \
         "s#https://aur.archlinux.org#ssh+git://aur@aur.archlinux.org#" \
-        -i ${dir_name}/.git/config
+        -i ${dirName}/.git/config
 
-    pushd ${dir_name}
+    pushd ${dirName}
+    indexedFiles=$(git ls-files)
     update_package
 
-    if makepkg_log=$(makepkg -p ${pkgbuildFile} 2>&1)
+    if makepkgLog=$(makepkg -p ${pkgbuildFile} 2>&1)
     status="succeeded"
     then
         echo "[SUCCESS] Package was successfully built"
         # if update is set, commit and copy indexed files to github directory
         ${pushGithubRepo} && git commit -am "Update to ${repoPkgVer}"
-        ${updateMainRepo} && cp $(git ls-files) ../
+        ${updateMainRepo} && cp ${indexedFiles} ../
     else
         echo "[FAILURE] Package building failed"
         status="failed"
@@ -138,14 +141,15 @@ then
     then
         echo "Sending an email to ${MAILTO}..."
         content="Updating from ${pkgver} to ${repoPkgVer}\n\n
-        This is the output of makepkg:\n${makepkg_log}"
+        This is the output of makepkg:\n${makepkgLog}"
         echo ${content} | mail -v -s \
             "[${pkgname-${repoPkgVer}}] makepkg ${status}" ${MAILTO}
     fi
 
     popd
     # if update is set, commit and push to GitHub
-    ${pushGithubRepo} && git commit -am "Update to ${repoPkgVer}"
+    ${pushGithubRepo} && git add ${indexedFiles}
+    ${pushGithubRepo} && git commit -m "Update to ${repoPkgVer}"
     ${pushGithubRepo} && git push origin master
 else
     echo "[UPDATED] Package is up to date"

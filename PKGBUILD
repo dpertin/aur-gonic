@@ -1,6 +1,6 @@
 # Maintainer: Dimitri Pertin <pertin (dot) dimitri (at) protonmail (dot) com>
 pkgname=gonic
-pkgver=0.8.8
+pkgver=0.9.0
 pkgrel=1
 pkgdesc='A lightweight music streaming server which implements the Subsonic API'
 arch=('x86_64')
@@ -16,9 +16,9 @@ source=("$pkgname-$pkgver.tar.gz::https://github.com/sentriz/gonic/archive/v$pkg
         "$pkgname.service"
         "$pkgname.sysusers"
         "$pkgname.tmpfiles")
-md5sums=('4a0fc182c6beef97ba99d146cf982399'
+md5sums=('60485d7d2bf3756a990489c1d88ac4ec'
          '1b70d272745c2c4cf5ea3be9445f508d'
-         '79839f087f3402b2d190f037ede7318c'
+         '42cafc55316a6fa709eb873afe037a6d'
          '6ca6715be2cdd424846f7b37b98905f6'
          '487fe9a172e33d86514cf3dbb3b629b8')
 
@@ -37,6 +37,5 @@ package() {
 
 	cd "$srcdir/$pkgname-$pkgver"
 	install -Dm755 ${pkgname} "$pkgdir/usr/bin/${pkgname}"
-	install -Dm644 LICENSE "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
 }
 

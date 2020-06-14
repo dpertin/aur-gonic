@@ -8,6 +8,7 @@ updateMainRepo=false
 pushGithubRepo=false
 repoPkgVer=$(curl --silent "https://api.github.com/repos/sentriz/gonic/tags" | \
     jq -r '.[0].name' | cut -d 'v' -f 2)
+force=false
 verbose=false
 
 # parse arguments
@@ -28,7 +29,7 @@ while true; do
       -u | --update)      # Update the main repository (default: false).
           updateMainRepo=true; shift 1;;
       -v | --version)     # If a specific semantic version is required (e.g. 0.8.5).
-          repoPkgVer=$2; shift 2;;
+          force=true; repoPkgVer=$2; shift 2;;
       -V | --verbose)     # Enable verbose mode (default: false).
           verbose=true; shift 1;;
       --) shift; break;;
@@ -108,7 +109,7 @@ update_package () {
 ${verbose} && echo "Current AUR version: ${pkgver}"
 ${verbose} && echo "Main repository version: ${repoPkgVer}"
 
-if vercomp ${pkgver} ${repoPkgVer};
+if vercomp ${pkgver} ${repoPkgVer} || ${force};
 then
     dirName=$"${pkgname}_${repoPkgVer}"
 

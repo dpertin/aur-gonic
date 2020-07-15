@@ -14,5 +14,5 @@ steps:
   - yay -Suy --noconfirm
   - namcap PKGBUILD
   - makepkg -sci --noconfirm
-  - namcap *.pkg.tar.xz
+  - namcap *.pkg.tar.zst
 

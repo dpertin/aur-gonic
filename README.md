@@ -1,6 +1,7 @@
 
 # AUR Gonic PKGBUILD
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e1bd8053e5714bb8863c6e2a3d2d8e56)](https://app.codacy.com/manual/dpertin/aur-gonic?utm_source=github.com&utm_medium=referral&utm_content=dpertin/aur-gonic&utm_campaign=Badge_Grade_Dashboard)
 [![Build Status](https://cloud.drone.io/api/badges/dpertin/aur-gonic/status.svg)](https://cloud.drone.io/dpertin/aur-gonic)
 
 This repo contains the required files to generate an Archlinux package of
